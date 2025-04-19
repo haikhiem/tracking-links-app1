@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking Links</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+    <style>
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Create Tracking Link</h1>
+    <form id="linkForm">
+        <label for="redirectUrl">Redirect URL:</label>
+        <input type="url" id="redirectUrl" required>
+        <button type="submit">Create</button>
+    </form>
+    <p id="trackingLink"></p>
+
+    <h2>Map</h2>
+    <div id="map"></div>
+
+    <script>
+        const form = document.getElementById('linkForm');
+        const trackingLinkElement = document.getElementById('trackingLink');
+        const mapElement = document.getElementById('map');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const redirectUrl = document.getElementById('redirectUrl').value;
+            const response = await fetch('http://localhost:3000/create-link', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ redirectUrl })
+            });
+            const data = await response.json();
+            trackingLinkElement.innerText = `Tracking Link: ${data.trackingUrl}`;
+        });
+
+        async function loadLocations(trackingId) {
+            const response = await fetch(`http://localhost:3000/locations/${trackingId}`);
+            const locations = await response.json();
+            const map = new google.maps.Map(mapElement, {
+                zoom: 4,
+                center: { lat: 0, lng: 0 }
+            });
+            locations.forEach(({ latitude, longitude }) => {
+                new google.maps.Marker({
+                    position: { lat: latitude, lng: longitude },
+                    map
+                });
+            });
+        }
+
+        // Replace 'your-tracking-id' with the actual tracking ID to test the map
+        loadLocations('your-tracking-id');
+    </script>
+</body>
+</html>
